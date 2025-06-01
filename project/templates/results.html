@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}Analysis Results{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1>Video Analysis Results</h1>
+    <p>View the results of all processed videos.</p>
+</div>
+
+{% if videos %}
+    <div class="card">
+        <h2>Processed Videos</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Video Name</th>
+                    <th>Frames Analyzed</th>
+                    <th>Duration (seconds)</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for video in videos %}
+                <tr>
+                    <td>{{ video.name }}</td>
+                    <td>{{ video.frame_count }}</td>
+                    <td>{{ "%.2f"|format(video.duration) }}</td>
+                    <td><span style="color: green; font-weight: bold;">✓ Complete</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="stats">
+        <div class="stat-card">
+            <div class="stat-number">{{ videos|length }}</div>
+            <div class="stat-label">Videos Processed</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ videos|sum(attribute='frame_count') }}</div>
+            <div class="stat-label">Total Frames</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ "%.1f"|format(videos|sum(attribute='duration')/60) }}</div>
+            <div class="stat-label">Total Minutes</div>
+        </div>
+    </div>
+{% else %}
+    <div class="card">
+        <div class="no-results">
+            <h2>No Videos Processed Yet</h2>
+            <p>Upload a video to start analysis.</p>
+            <a href="/" class="btn">Upload Video</a>
+        </div>
+    </div>
+{% endif %}
+
+<div class="card">
+    <h2>Next Steps</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+        <div style="padding: 1rem; background: #f8f9fa; border-radius: 4px;">
+            <h3>🔍 Search License Plates</h3>
+            <p>Find specific vehicles by license plate number.</p>
+            <a href="/plate_search" class="btn">Search Plates</a>
+        </div>
+        <div style="padding: 1rem; background: #f8f9fa; border-radius: 4px;">
+            <h3>👤 Match Faces</h3>
+            <p>Upload a face photo to find matches in videos.</p>
+            <a href="/face_match" class="btn">Match Faces</a>
+        </div>
+        <div style="padding: 1rem; background: #f8f9fa; border-radius: 4px;">
+            <h3>🚨 View Alerts</h3>
+            <p>Check automated alerts and notifications.</p>
+            <a href="/alerts" class="btn">View Alerts</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

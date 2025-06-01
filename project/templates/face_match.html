@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+
+{% block title %}Face Matching{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1>Face Matching</h1>
+    <p>Upload a face image to search for matches across all analyzed videos.</p>
+</div>
+
+<div class="card">
+    <h2>Upload Face Image</h2>
+    <form action="/face_match" method="post" enctype="multipart/form-data">
+        <div class="form-group">
+            <label for="face_image">Select Face Image:</label>
+            <input type="file" name="face_image" id="face_image" accept="image/*" required>
+            <small style="color: #666; display: block; margin-top: 0.5rem;">
+                Supported formats: JPG, PNG, JPEG. Best results with clear, front-facing photos.
+            </small>
+        </div>
+        <button type="submit" class="btn">Find Matches</button>
+    </form>
+</div>
+
+{% if uploaded_image %}
+<div class="card">
+    <h2>Uploaded Image</h2>
+    <img src="/static/uploads/{{ uploaded_image }}" alt="Uploaded face" style="max-width: 300px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+</div>
+{% endif %}
+
+{% if matches %}
+    <div class="card">
+        <h2>Face Matches Found</h2>
+        <p>{{ matches|length }} potential matches found (sorted by similarity)</p>
+        
+        <!-- Grid layout for matches with images -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1.5rem; margin-top: 1rem;">
+            {% for match in matches %}
+            <div style="border: 1px solid #ddd; border-radius: 8px; padding: 1rem; background: #f9f9f9;">
+                <div style="display: flex; gap: 1rem; align-items: flex-start;">
+                    <!-- Frame Image -->
+                    <div style="flex-shrink: 0;">
+                        {% if match.frame_image_url %}
+                            <img src="/static/{{ match.frame_image_url }}" 
+                                 alt="Frame {{ match.frame_number }}" 
+                                 style="width: 150px; height: 100px; object-fit: cover; border-radius: 4px; border: 2px solid #007bff;">
+                        {% else %}
+                            <div style="width: 150px; height: 100px; background: #e9ecef; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: #6c757d; font-size: 0.9rem;">
+                                Frame Not Available
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Match Details -->
+                    <div style="flex-grow: 1;">
+                        <h4 style="margin: 0 0 0.5rem 0; color: #007bff;">{{ match.video_name }}</h4>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; font-size: 0.9rem;">
+                            <div><strong>Frame:</strong> {{ match.frame_number }}</div>
+                            <div><strong>Time:</strong> {{ "%.2f"|format(match.timestamp) }}s</div>
+                            <div><strong>Similarity:</strong> {{ "%.3f"|format(match.similarity) }}</div>
+                            <div><strong>Confidence:</strong>
+                                {% if match.similarity > 0.8 %}
+                                    <span style="color: green; font-weight: bold;">High</span>
+                                {% elif match.similarity > 0.6 %}
+                                    <span style="color: orange; font-weight: bold;">Medium</span>
+                                {% else %}
+                                    <span style="color: red; font-weight: bold;">Low</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Clickable link to view full frame -->
+                        {% if match.frame_image_url %}
+                        <div style="margin-top: 0.5rem;">
+                            <a href="/static/{{ match.frame_image_url }}" target="_blank" 
+                               style="color: #007bff; text-decoration: none; font-size: 0.9rem;">
+                                🔍 View Full Frame
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Traditional table view (optional - can be toggled) -->
+        <details style="margin-top: 2rem;">
+            <summary style="cursor: pointer; font-weight: bold; color: #007bff;">Show Table View</summary>
+            <table style="margin-top: 1rem;">
+                <thead>
+                    <tr>
+                        <th>Video Name</th>
+                        <th>Frame Number</th>
+                        <th>Timestamp</th>
+                        <th>Similarity Score</th>
+                        <th>Confidence</th>
+                        <th>Frame Image</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for match in matches %}
+                    <tr>
+                        <td>{{ match.video_name }}</td>
+                        <td>{{ match.frame_number }}</td>
+                        <td>{{ "%.2f"|format(match.timestamp) }}s</td>
+                        <td>{{ "%.3f"|format(match.similarity) }}</td>
+                        <td>
+                            {% if match.similarity > 0.8 %}
+                                <span style="color: green; font-weight: bold;">High</span>
+                            {% elif match.similarity > 0.6 %}
+                                <span style="color: orange; font-weight: bold;">Medium</span>
+                            {% else %}
+                                <span style="color: red; font-weight: bold;">Low</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if match.frame_image_url %}
+                                <a href="/static/{{ match.frame_image_url }}" target="_blank">
+                                    <img src="/static/{{ match.frame_image_url }}" 
+                                         alt="Frame" 
+                                         style="width: 60px; height: 40px; object-fit: cover; border-radius: 3px;">
+                                </a>
+                            {% else %}
+                                <span style="color: #999; font-size: 0.8rem;">Not available</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </details>
+    </div>
+{% elif uploaded_image %}
+    <div class="card">
+        <div class="no-results">
+            <h2>No Matches Found</h2>
+            <p>No similar faces were found in the analyzed videos.</p>
+        </div>
+    </div>
+{% endif %}
+
+<div class="card">
+    <h2>How Face Matching Works</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+        <div style="padding: 1rem; background: #e8f4fd; border-radius: 4px;">
+            <h3>1. Face Detection</h3>
+            <p>The system detects faces in your uploaded image using MTCNN.</p>
+        </div>
+        <div style="padding: 1rem; background: #e8f4fd; border-radius: 4px;">
+            <h3>2. Feature Encoding</h3>
+            <p>Facial features are converted into a 512-dimensional vector using FaceNet.</p>
+        </div>
+        <div style="padding: 1rem; background: #e8f4fd; border-radius: 4px;">
+            <h3>3. Database Search</h3>
+            <p>Your face encoding is compared against all faces in analyzed videos using cosine similarity.</p>
+        </div>
+        <div style="padding: 1rem; background: #e8f4fd; border-radius: 4px;">
+            <h3>4. Results & Images</h3>
+            <p>Matches are ranked by similarity and displayed with their corresponding frame images.</p>
+        </div>
+    </div>
+    
+    <div style="margin-top: 2rem; padding: 1rem; background: #fff3cd; border-radius: 4px; border-left: 4px solid #ffc107;">
+        <strong>Privacy Note:</strong> Uploaded images are processed locally and not stored permanently. Face encodings are mathematical representations and cannot be reverse-engineered to recreate the original image.
+    </div>
+</div>
+
+<style>
+    /* Enhanced styles for the face matching page */
+    .card {
+        margin-bottom: 1.5rem;
+    }
+    
+    /* Hover effects for match cards */
+    .card > div[style*="grid-template-columns"] > div:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,123,255,0.15);
+        transition: all 0.3s ease;
+    }
+    
+    /* Image zoom on hover */
+    img[alt*="Frame"]:hover {
+        transform: scale(1.05);
+        transition: transform 0.3s ease;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .card > div[style*="grid-template-columns"] {
+            grid-template-columns: 1fr !important;
+        }
+        
+        .card > div[style*="grid-template-columns"] > div > div[style*="display: flex"] {
+            flex-direction: column !important;
+            align-items: center !important;
+            text-align: center;
+        }
+        
+        .card > div[style*="grid-template-columns"] > div > div[style*="display: flex"] > div:first-child {
+            margin-bottom: 1rem;
+        }
+    }
+</style>
+{% endblock %}

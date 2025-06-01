@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}License Plate Search{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1>License Plate Search</h1>
+    <p>Search for specific license plates across all analyzed videos.</p>
+</div>
+
+<div class="card">
+    <h2>Search License Plate</h2>
+    <form action="/plate_search" method="post">
+        <div class="form-group">
+            <label for="plate_number">License Plate Number:</label>
+            <input type="text" name="plate_number" id="plate_number" 
+                   placeholder="Enter full or partial plate number (e.g., ABC123)" 
+                   value="{{ query if query else '' }}" required>
+            <small style="color: #666; display: block; margin-top: 0.5rem;">
+                You can search for partial matches. Enter at least 3 characters.
+            </small>
+        </div>
+        <button type="submit" class="btn">Search</button>
+    </form>
+</div>
+
+{% if query %}
+    {% if matches %}
+        <div class="card">
+            <h2>Search Results for "{{ query }}"</h2>
+            <p>{{ matches|length }} matches found</p>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>License Plate</th>
+                        <th>Video Name</th>
+                        <th>Frame Number</th>
+                        <th>Timestamp</th>
+                        <th>OCR Confidence</th>
+                        <th>Match Quality</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for match in matches %}
+                    <tr>
+                        <td><strong>{{ match.plate_text }}</strong></td>
+                        <td>{{ match.video_name }}</td>
+                        <td>{{ match.frame_number }}</td>
+                        <td>{{ "%.2f"|format(match.timestamp) }}s</td>
+                        <td>{{ "%.1f"|format(match.confidence * 100) }}%</td>
+                        <td>
+                            {% if match.confidence > 0.9 %}
+                                <span style="color: green; font-weight: bold;">Excellent</span>
+                            {% elif match.confidence > 0.8 %}
+                                <span style="color: blue; font-weight: bold;">Good</span>
+                            {% elif match.confidence > 0.7 %}
+                                <span style="color: orange; font-weight: bold;">Fair</span>
+                            {% else %}
+                                <span style="color: red; font-weight: bold;">Poor</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number">{{ matches|length }}</div>
+                <div class="stat-label">Total Matches</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ matches|map(attribute='video_name')|list|unique|length }}</div>
+                <div class="stat-label">Videos Found</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ "%.1f"|format((matches|map(attribute='confidence')|list|sum / matches|length) * 100) }}%</div>
+                <div class="stat-label">Avg Confidence</div>
+            </div>
+        </div>
+    {% else %}
+        <div class="card">
+            <div class="no-results">
+                <h2>No Results Found</h2>
+                <p>No license plates matching "{{ query }}" were found in the analyzed videos.</p>
+                <div style="margin-top: 1rem;">
+                    <strong>Tips:</strong>
+                    <ul style="text-align: left; margin-top: 0.5rem;">
+                        <li>Try searching with fewer characters</li>
+                        <li>Check for common OCR mistakes (0 vs O, 1 vs I)</li>
+                        <li>Make sure videos have been fully processed</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endif %}
+
+<div class="card">
+    <h2>How License Plate Recognition Works</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+        <div style="padding: 1rem; background: #e8f6f3; border-radius: 4px;">
+            <h3>1. Vehicle Detection</h3>
+            <p>AI identifies cars, trucks, buses, and motorcycles in video frames.</p>
+        </div>
+        <div style="padding: 1rem; background: #e8f6f3; border-radius: 4px;">
+            <h3>2. Plate Localization</h3>
+            <p>License plate regions are extracted from detected vehicles.</p>
+        </div>
+        <div style="padding: 1rem; background: #e8f6f3; border-radius: 4px;">
+            <h3>3. OCR Processing</h3>
+            <p>Optical Character Recognition reads text from plate images.</p>
+        </div>
+        <div style="padding: 1rem; background: #e8f6f3; border-radius: 4px;">
+            <h3>4. Database Storage</h3>
+            <p>Plate numbers are stored with timestamps and confidence scores.</p>
+        </div>
+    </div>
+    
+    <div style="margin-top: 2rem;">
+        <h3>Search Tips:</h3>
+        <ul style="margin-left: 1rem; margin-top: 0.5rem;">
+            <li><strong>Full Match:</strong> Enter complete plate number for exact matches</li>
+            <li><strong>Partial Match:</strong> Enter part of plate number to find similar plates</li>
+            <li><strong>Case Insensitive:</strong> Search works regardless of upper/lower case</li>
+            <li><strong>OCR Errors:</strong> System may confuse similar characters (0/O, 1/I, 5/S)</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

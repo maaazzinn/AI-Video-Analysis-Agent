@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Video Analysis System - Home{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1>AI-Powered Video Analysis System</h1>
+    <p>Upload videos for comprehensive analysis including object detection, face recognition, and license plate identification.</p>
+</div>
+
+<div class="stats">
+    <div class="stat-card">
+        <div class="stat-number">🎥</div>
+        <div class="stat-label">Object Detection</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number">👤</div>
+        <div class="stat-label">Face Recognition</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number">🚗</div>
+        <div class="stat-label">License Plate OCR</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number">🚨</div>
+        <div class="stat-label">Smart Alerts</div>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Upload Video for Analysis</h2>
+    <form action="/upload" method="post" enctype="multipart/form-data">
+        <div class="form-group">
+            <label for="video">Select Video File (Max 500MB):</label>
+            <input type="file" name="video" id="video" accept="video/*" required>
+        </div>
+        <button type="submit" class="btn">Upload and Analyze</button>
+    </form>
+    
+    <div style="margin-top: 2rem;">
+        <h3>System Features:</h3>
+        <ul style="margin-left: 2rem; margin-top: 1rem;">
+            <li><strong>Object Detection:</strong> Identifies people, vehicles, and other objects</li>
+            <li><strong>Face Recognition:</strong> Detects and encodes faces for matching</li>
+            <li><strong>License Plate Recognition:</strong> Extracts and reads license plates from vehicles</li>
+            <li><strong>Smart Alerts:</strong> Automatically triggers alerts for crowd detection and traffic congestion</li>
+            <li><strong>Searchable Database:</strong> Query results by license plate or face matching</li>
+        </ul>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Quick Search</h2>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+        <div>
+            <h3>License Plate Search</h3>
+            <p>Search for specific license plates across all analyzed videos.</p>
+            <a href="/plate_search" class="btn">Search License Plates</a>
+        </div>
+        <div>
+            <h3>Face Matching</h3>
+            <p>Upload a face image to find matches in analyzed videos.</p>
+            <a href="/face_match" class="btn">Match Faces</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

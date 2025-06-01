@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+
+{% block title %}System Alerts{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1>System Alerts</h1>
+    <p>Automated alerts triggered during video analysis.</p>
+</div>
+
+{% if alerts %}
+    <div class="stats">
+        <div class="stat-card">
+            <div class="stat-number">{{ alerts|length }}</div>
+            <div class="stat-label">Total Alerts</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ alerts|selectattr('type', 'equalto', 'crowd_threshold')|list|length }}</div>
+            <div class="stat-label">Crowd Alerts</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ alerts|selectattr('type', 'equalto', 'vehicle_congestion')|list|length }}</div>
+            <div class="stat-label">Traffic Alerts</div>
+        </div>
+    </div>
+    
+    <div class="card">
+        <h2>Recent Alerts</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Description</th>
+                    <th>Video</th>
+                    <th>Frame</th>
+                    <th>Time</th>
+                    <th>Alert Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for alert in alerts %}
+                <tr>
+                    <td>
+                        <span class="alert-badge alert-{{ alert.type }}">
+                            {% if alert.type == 'crowd_threshold' %}
+                                👥 Crowd
+                            {% elif alert.type == 'vehicle_congestion' %}
+                                🚗 Traffic
+                            {% else %}
+                                ⚠️ {{ alert.type }}
+                            {% endif %}
+                        </span>
+                    </td>
+                    <td>{{ alert.description }}</td>
+                    <td>{{ alert.video_name }}</td>
+                    <td>{{ alert.frame_number }}</td>
+                    <td>{{ "%.2f"|format(alert.timestamp) }}s</td>
+                    <td>{{ alert.created_at }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% else %}
+    <div class="card">
+        <div class="no-results">
+            <h2>No Alerts</h2>
+            <p>No alerts have been triggered yet. Alerts are automatically generated when:</p>
+            <ul style="text-align: left; margin-top: 1rem;">
+                <li>More than 5 people are detected in a single frame</li>
+                <li>More than 3 vehicles are detected in a single frame</li>
+                <li>Other custom conditions are met</li>
+            </ul>
+        </div>
+    </div>
+{% endif %}
+
+<div class="card">
+    <h2>Alert Configuration</h2>
+    <p>The system automatically monitors for the following conditions:</p>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; margin-top: 1rem;">
+        <div style="padding: 1.5rem; background: #fff8e1; border-radius: 8px; border-left: 4px solid #ff9800;">
+            <h3>👥 Crowd Detection</h3>
+            <p><strong>Trigger:</strong> More than 5 people detected in a single frame</p>
+            <p><strong>Use Case:</strong> Monitor for large gatherings or crowd formation</p>
+            <p><strong>Current Status:</strong> 
+                <span style="color: green; font-weight: bold;">✓ Active</span>
+            </p>
+        </div>
+        
+        <div style="padding: 1.5rem; background: #f3e5f5; border-radius: 8px; border-left: 4px solid #9c27b0;">
+            <h3>🚗 Traffic Congestion</h3>
+            <p><strong>Trigger:</strong> More than 3 vehicles detected in a single frame</p>
+            <p><strong>Use Case:</strong> Monitor traffic density and congestion</p>
+            <p><strong>Current Status:</strong> 
+                <span style="color: green; font-weight: bold;">✓ Active</span>
+            </p>
+        </div>
+        
+        <div style="padding: 1.5rem; background: #e8f5e8; border-radius: 8px; border-left: 4px solid #4caf50;">
+            <h3>🎯 Custom Alerts</h3>
+            <p><strong>Trigger:</strong> Configurable conditions</p>
+            <p><strong>Use Case:</strong> Custom business logic and rules</p>
+            <p><strong>Current Status:</strong> 
+                <span style="color: orange; font-weight: bold;">⚠️ Available for Configuration</span>
+            </p>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Alert Actions</h2>
+    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+        <button class="btn" onclick="refreshAlerts()">🔄 Refresh Alerts</button>
+        <button class="btn btn-danger" onclick="clearAlerts()">🗑️ Clear All Alerts</button>
+    </div>
+    
+    <div style="margin-top: 2rem; padding: 1rem; background: #e3f2fd; border-radius: 4px;">
+        <strong>Note:</strong> Alerts are automatically generated during video analysis. 
+        They help identify important events and patterns in your surveillance footage.
+    </div>
+</div>
+
+    <style>
+.alert-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: bold;
+}
+
+.alert-crowd_threshold {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.alert-vehicle_congestion {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+</style>
+
+<script>
+function refreshAlerts() {
+    window.location.reload();
+}
+
+function clearAlerts() {
+    if (confirm('Are you sure you want to clear all alerts? This action cannot be undone.')) {
+        // In a real implementation, this would make an API call to clear alerts
+        alert('Clear alerts functionality would be implemented here');
+    }
+}
+</script>
+{% endblock %}
